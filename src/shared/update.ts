@@ -12,6 +12,39 @@ export interface UpdateFeedConfig {
   checksumName: string;
 }
 
+export function getGitHubLatestReleaseApiUrl(owner: string, repo: string): string {
+  return `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+}
+
+export function getGitHubLatestReleasePageUrl(owner: string, repo: string): string {
+  return `https://github.com/${owner}/${repo}/releases/latest`;
+}
+
+export function getGitHubLatestDownloadUrl(owner: string, repo: string, assetName: string): string {
+  return `${getGitHubLatestReleasePageUrl(owner, repo)}/download/${assetName}`;
+}
+
+export function extractReleaseTagFromLocation(location: string, owner: string, repo: string): string | undefined {
+  const latestPageUrl = new URL(getGitHubLatestReleasePageUrl(owner, repo));
+  const resolvedUrl = new URL(location, latestPageUrl);
+  const expectedPrefix = `/${owner}/${repo}/releases/tag/`;
+
+  if (resolvedUrl.origin !== latestPageUrl.origin || !resolvedUrl.pathname.startsWith(expectedPrefix)) {
+    return undefined;
+  }
+
+  const tag = decodeURIComponent(resolvedUrl.pathname.slice(expectedPrefix.length));
+  return tag || undefined;
+}
+
+export function isGitHubApiRateLimitResponse(status: number, bodyText: string, remaining?: string | null): boolean {
+  if (status !== 403) {
+    return false;
+  }
+
+  return remaining === '0' || bodyText.toLowerCase().includes('rate limit exceeded');
+}
+
 export function sanitizeVersionForPath(version: string): string {
   return version.replace(/^v/i, '').replace(/[^0-9A-Za-z.-]/g, '-');
 }

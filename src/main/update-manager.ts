@@ -6,7 +6,18 @@ import { spawn } from 'node:child_process';
 import extract from 'extract-zip';
 import { app } from 'electron';
 import type { UpdateCommandResult, UpdateSnapshot, VersionInfo } from '../shared/contracts';
-import { getReleaseAssetNames, getStagedReleaseDir, isRemoteVersionNewer, isUpdateFeedConfigured, pickReleaseAsset } from '../shared/update';
+import {
+  extractReleaseTagFromLocation,
+  getGitHubLatestDownloadUrl,
+  getGitHubLatestReleaseApiUrl,
+  getGitHubLatestReleasePageUrl,
+  getReleaseAssetNames,
+  getStagedReleaseDir,
+  isGitHubApiRateLimitResponse,
+  isRemoteVersionNewer,
+  isUpdateFeedConfigured,
+  pickReleaseAsset
+} from '../shared/update';
 import type { RuntimePaths } from './paths';
 
 interface GitHubReleasePayload {
@@ -55,7 +66,8 @@ export class UpdateManager extends EventEmitter {
       message: '正在检查 GitHub Releases…'
     });
 
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
+    const releaseAssetNames = getReleaseAssetNames({ assetName, checksumName });
+    const response = await fetch(getGitHubLatestReleaseApiUrl(owner, repo), {
       headers: {
         'Accept': 'application/vnd.github+json',
         'User-Agent': 'Cursor2API-Bridge-Updater'
@@ -63,15 +75,30 @@ export class UpdateManager extends EventEmitter {
     });
 
     if (!response.ok) {
+      const responseText = await response.text().catch(() => '');
+      if (isGitHubApiRateLimitResponse(response.status, responseText, response.headers.get('x-ratelimit-remaining'))) {
+        const fallbackSnapshot = await this.checkForUpdatesViaReleaseRedirect(owner, repo, releaseAssetNames.archiveName, releaseAssetNames.checksumName);
+        if (fallbackSnapshot) {
+          return fallbackSnapshot;
+        }
+
+        return this.updateSnapshot({
+          ...this.snapshot,
+          phase: 'error',
+          integrity: 'pending',
+          message: '更新检查失败：GitHub API 匿名请求额度已用尽，且公开 Release 页面回退失败。'
+        });
+      }
+
       return this.updateSnapshot({
         ...this.snapshot,
         phase: 'error',
+        integrity: 'pending',
         message: `更新检查失败：HTTP ${response.status}`
       });
     }
 
     const release = await response.json() as GitHubReleasePayload;
-    const releaseAssetNames = getReleaseAssetNames({ assetName, checksumName });
     const zipAsset = pickReleaseAsset(release.assets, releaseAssetNames.archiveName);
     const checksumAsset = pickReleaseAsset(release.assets, releaseAssetNames.checksumName);
 
@@ -103,6 +130,54 @@ export class UpdateManager extends EventEmitter {
       checksumUrl: checksumAsset.browser_download_url,
       integrity: 'pending',
       message: '发现新版本，可下载到新目录。'
+    });
+  }
+
+  private async checkForUpdatesViaReleaseRedirect(owner: string, repo: string, archiveName: string, checksumName: string): Promise<UpdateSnapshot | undefined> {
+    const latestReleaseUrl = getGitHubLatestReleasePageUrl(owner, repo);
+    const response = await fetch(latestReleaseUrl, {
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml',
+        'User-Agent': 'Cursor2API-Bridge-Updater'
+      },
+      redirect: 'manual'
+    });
+
+    if (![301, 302, 303, 307, 308].includes(response.status)) {
+      return undefined;
+    }
+
+    const location = response.headers.get('location');
+    if (!location) {
+      return undefined;
+    }
+
+    const releasePageUrl = new URL(location, latestReleaseUrl).toString();
+    const remoteVersion = extractReleaseTagFromLocation(releasePageUrl, owner, repo);
+    if (!remoteVersion) {
+      return undefined;
+    }
+
+    if (!isRemoteVersionNewer(this.versionInfo.appVersion, remoteVersion)) {
+      return this.updateSnapshot({
+        ...this.snapshot,
+        phase: 'idle',
+        remoteVersion,
+        releasePageUrl,
+        integrity: 'pending',
+        message: '当前已经是最新版本。'
+      });
+    }
+
+    return this.updateSnapshot({
+      ...this.snapshot,
+      phase: 'available',
+      remoteVersion,
+      releasePageUrl,
+      downloadUrl: getGitHubLatestDownloadUrl(owner, repo, archiveName),
+      checksumUrl: getGitHubLatestDownloadUrl(owner, repo, checksumName),
+      integrity: 'pending',
+      message: 'GitHub API 匿名请求额度已用尽，已通过公开 Release 页面检查到新版本。'
     });
   }
 
