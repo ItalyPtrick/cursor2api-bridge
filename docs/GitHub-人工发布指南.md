@@ -223,14 +223,14 @@ Create a new release
 2. 在 `Choose a tag` 里输入一个新 tag，例如：
 
 ```text
-v0.1.0
+v0.1.3
 ```
 
 3. 确认创建这个 tag
 4. 在标题里写版本名，例如：
 
 ```text
-v0.1.0
+v0.1.3
 ```
 
 5. 在说明里写清：
