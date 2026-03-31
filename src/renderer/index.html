@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cursor2API Bridge</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="lane lane-left"></span>
+          <span class="bridge-bar"></span>
+          <span class="lane lane-right"></span>
+          <span class="head head-left"></span>
+          <span class="head head-right"></span>
+        </div>
+        <div class="brand-copy">
+          <div class="eyebrow">Bridge Console</div>
+          <h1>Cursor2API Bridge</h1>
+          <div class="brand-links">
+            <button class="topbar-link" id="openUpstreamRepoButton" data-bridge-action="true" title="https://github.com/7836246/cursor2api">
+              原项目 · 7836246/cursor2api
+            </button>
+          </div>
+        </div>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="home">控制台</button>
+        <button class="nav-tab" data-tab="settings">设置</button>
+        <button class="nav-tab" data-tab="stats">统计</button>
+      </nav>
+    </header>
+
+    <div id="globalBanner" class="global-banner" hidden></div>
+    <div id="toastHost" class="toast-host" hidden></div>
+
+    <main class="content">
+      <section id="homePanel" class="panel active">
+        <section class="home-grid">
+          <div class="home-sidebar">
+            <article class="card card-primary control-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-kicker">Service</div>
+                  <h3>服务控制</h3>
+                </div>
+              </div>
+              <p class="lead-text" id="serviceControlHint">
+                所有运行控制都集中在这里，启动后即可在设置页打开原项目前端。
+              </p>
+              <div class="action-row action-row-major action-row-control">
+                <button class="action-button action-strong action-large" id="serviceToggleButton" data-bridge-action="true">启动服务</button>
+                <button class="action-button" id="restartButton" data-bridge-action="true">重启服务</button>
+              </div>
+            </article>
+
+            <article class="card access-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-kicker">Access</div>
+                  <h3>接入信息</h3>
+                </div>
+              </div>
+              <div class="access-list">
+                <div class="access-item">
+                  <div>
+                    <span class="label">本地地址</span>
+                    <div class="access-value mono-line" id="accessBaseUrl">http://127.0.0.1:3011</div>
+                  </div>
+                  <button class="copy-button" id="copyBaseUrlButton" data-bridge-action="true" aria-label="复制本地地址">复制</button>
+                </div>
+                <div class="access-item">
+                  <div>
+                    <span class="label">当前端口</span>
+                    <div class="access-value mono-line" id="accessPort">3011</div>
+                  </div>
+                  <button class="copy-button" id="copyPortButton" data-bridge-action="true" aria-label="复制端口">复制</button>
+                </div>
+                <div class="access-item">
+                  <div>
+                    <span class="label">当前模型</span>
+                    <div class="access-value mono-line" id="accessModel">anthropic/claude-sonnet-4.6</div>
+                  </div>
+                  <button class="copy-button" id="copyModelButton" data-bridge-action="true" aria-label="复制模型">复制</button>
+                </div>
+              </div>
+              <div class="access-footer">
+                <span class="label">兼容接口</span>
+                <p class="access-protocols" id="accessProtocols">Anthropic Messages API / OpenAI Chat Completions API / OpenAI Responses API</p>
+              </div>
+            </article>
+          </div>
+
+          <article class="card status-card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Live Status</div>
+                <h3>服务状态</h3>
+              </div>
+            </div>
+            <div class="status-spotlight" id="serviceSpotlight" data-phase="stopped">
+              <div class="status-word" id="serviceSpotlightWord">STOPPED</div>
+              <div class="status-copy">
+                <div class="status-pill" id="heroStatus">服务已停止</div>
+                <p id="heroSummary">启动服务后即可使用本地 API，并在设置页打开原项目前端。</p>
+              </div>
+            </div>
+            <div class="service-grid">
+              <div>
+                <span class="label">当前端口</span>
+                <div class="mono-line" id="metricPort">3011</div>
+              </div>
+              <div>
+                <span class="label">服务版本</span>
+                <div class="mono-line" id="serviceVersion">-</div>
+              </div>
+              <div>
+                <span class="label">健康检查</span>
+                <div class="mono-line" id="healthUrl">http://127.0.0.1:3011/health</div>
+              </div>
+              <div>
+                <span class="label">Node 运行时</span>
+                <div class="mono-line" id="nodePath">node</div>
+              </div>
+              <div>
+                <span class="label">应用版本</span>
+                <div class="mono-line" id="metricAppVersion">-</div>
+              </div>
+              <div>
+                <span class="label">上游版本</span>
+                <div class="mono-line" id="metricUpstreamVersion">-</div>
+              </div>
+              <div class="service-detail-wide">
+                <span class="label">最近错误</span>
+                <div class="mono-line" id="serviceError">暂无</div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="log-grid">
+          <article class="card log-card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Runtime</div>
+                <h3>最近标准输出</h3>
+              </div>
+            </div>
+            <pre class="console" id="stdoutConsole">等待启动…</pre>
+          </article>
+          <article class="card log-card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Runtime</div>
+                <h3>最近标准错误</h3>
+              </div>
+            </div>
+            <pre class="console" id="stderrConsole">暂无错误输出</pre>
+          </article>
+        </section>
+      </section>
+
+      <section id="settingsPanel" class="panel">
+        <section class="settings-grid">
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Appearance</div>
+                <h3>外观</h3>
+              </div>
+            </div>
+            <p class="lead-text">桌面壳支持浅色、深色和跟随系统三种模式。</p>
+            <div class="theme-switch">
+              <button class="theme-pill" data-theme-mode="light" data-bridge-action="true">浅色</button>
+              <button class="theme-pill" data-theme-mode="dark" data-bridge-action="true">深色</button>
+              <button class="theme-pill" data-theme-mode="system" data-bridge-action="true">跟随系统</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Frontend</div>
+                <h3>前端入口</h3>
+              </div>
+            </div>
+            <p class="lead-text">软件内不再嵌入原项目前端，统一使用浏览器打开，优先尝试你选中的路由。</p>
+            <div class="setting-stack">
+              <div>
+                <span class="label">路由偏好</span>
+                <div class="route-switch">
+                  <button class="route-pill active" data-route="/vuelogs" data-bridge-action="true">/vuelogs</button>
+                  <button class="route-pill" data-route="/logs" data-bridge-action="true">/logs</button>
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="action-button action-strong" id="openFrontendBrowserButton" data-bridge-action="true">打开原项目前端</button>
+                <button class="action-button" id="openHealthButton" data-bridge-action="true">打开健康检查</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Workspace</div>
+                <h3>本地入口</h3>
+              </div>
+            </div>
+            <div class="action-stack">
+              <button class="action-button" id="openInstallButton" data-bridge-action="true">打开安装目录</button>
+              <button class="action-button" id="openDataButton" data-bridge-action="true">打开数据目录</button>
+              <button class="action-button" id="openSourceButton" data-bridge-action="true">打开源码包目录</button>
+              <button class="action-button" id="createShortcutButton" data-bridge-action="true">创建桌面快捷方式</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Update</div>
+                <h3>安全更新</h3>
+              </div>
+              <span class="chip chip-muted" id="updatePhaseChip">idle</span>
+            </div>
+            <div class="stack">
+              <div>
+                <span class="label">当前版本</span>
+                <div class="mono-line" id="updateCurrentVersion">-</div>
+              </div>
+              <div>
+                <span class="label">远端版本</span>
+                <div class="mono-line" id="updateRemoteVersion">未检查</div>
+              </div>
+              <div>
+                <span class="label">完整性</span>
+                <div class="mono-line" id="updateIntegrity">-</div>
+              </div>
+              <div>
+                <span class="label">说明</span>
+                <div class="paragraph" id="updateMessage">更新会下载到新目录，不会覆盖当前运行目录。</div>
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="action-button action-strong" id="checkUpdateButton" data-bridge-action="true">检查更新</button>
+              <button class="action-button" id="downloadUpdateButton" data-bridge-action="true">下载并解压</button>
+              <button class="action-button" id="applyUpdateButton" data-bridge-action="true">启动新版本</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-kicker">Transparency</div>
+                <h3>透明信息</h3>
+              </div>
+            </div>
+            <div class="stack">
+              <div>
+                <span class="label">上游仓库</span>
+                <div class="mono-line" id="upstreamRepo">-</div>
+              </div>
+              <div>
+                <span class="label">上游提交</span>
+                <div class="mono-line" id="upstreamCommit">-</div>
+              </div>
+              <div>
+                <span class="label">版本文件</span>
+                <div class="mono-line" id="versionFile">-</div>
+              </div>
+              <div>
+                <span class="label">更新说明</span>
+                <div class="mono-line" id="readmeFile">-</div>
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="action-button" id="openVersionButton" data-bridge-action="true">打开版本文件</button>
+              <button class="action-button" id="openReadmeButton" data-bridge-action="true">打开更新说明</button>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <section id="statsPanel" class="panel">
+        <section class="card stats-overview-card">
+          <div class="card-header">
+            <div>
+              <div class="card-kicker">Usage</div>
+              <h3>Token 与模型统计</h3>
+            </div>
+            <div class="stats-actions">
+              <div class="range-switch" aria-label="统计范围">
+                <button class="range-pill active" data-range="day" data-bridge-action="true">日</button>
+                <button class="range-pill" data-range="week" data-bridge-action="true">周</button>
+                <button class="range-pill" data-range="month" data-bridge-action="true">月</button>
+                <button class="range-pill" data-range="all" data-bridge-action="true">全部</button>
+              </div>
+              <button class="action-button" id="statsRefreshButton" data-bridge-action="true">刷新统计</button>
+            </div>
+          </div>
+          <div class="stats-banner" id="statsBanner">统计基于本地 cursor2api 日志数据库，范围切换会重新聚合请求与 Token。</div>
+          <div class="stats-summary-grid">
+            <article class="stats-metric-card">
+              <span class="metric-label">统计范围</span>
+              <strong id="statsRangeLabel">最近 24 小时</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">请求数</span>
+              <strong id="statsRequests">0</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">输入 Token</span>
+              <strong id="statsInputTokens">0</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">输出 Token</span>
+              <strong id="statsOutputTokens">0</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">总 Token</span>
+              <strong id="statsTotalTokens">0</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">活跃模型</span>
+              <strong id="statsActiveModels">0</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">成功率</span>
+              <strong id="statsSuccessRate">0%</strong>
+            </article>
+            <article class="stats-metric-card">
+              <span class="metric-label">最近请求</span>
+              <strong id="statsLastRequestAt">-</strong>
+            </article>
+          </div>
+          <div class="stats-status-strip">
+            <div class="stats-status-pill success">Success <strong id="statsSuccessCount">0</strong></div>
+            <div class="stats-status-pill degraded">Degraded <strong id="statsDegradedCount">0</strong></div>
+            <div class="stats-status-pill error">Error <strong id="statsErrorCount">0</strong></div>
+            <div class="stats-status-pill intercepted">Intercepted <strong id="statsInterceptedCount">0</strong></div>
+            <div class="stats-status-pill processing">Processing <strong id="statsProcessingCount">0</strong></div>
+          </div>
+        </section>
+
+        <section class="card stats-table-card">
+          <div class="card-header">
+            <div>
+              <div class="card-kicker">By Model</div>
+              <h3>模型 Token 分布</h3>
+            </div>
+            <span class="chip chip-muted" id="statsLastUpdated">尚未加载</span>
+          </div>
+          <div class="table-wrap">
+            <table class="stats-table">
+              <thead>
+                <tr>
+                  <th>模型</th>
+                  <th>请求数</th>
+                  <th>输入 Token</th>
+                  <th>输出 Token</th>
+                  <th>总 Token</th>
+                  <th>成功率</th>
+                </tr>
+              </thead>
+              <tbody id="statsModelRows"></tbody>
+            </table>
+            <div class="table-empty" id="statsEmptyState">等待统计数据…</div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

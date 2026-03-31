@@ -1,0 +1,7 @@
+dist/
+release/
+vendor/
+assets/generated/
+node_modules/
+data/
+

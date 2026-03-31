@@ -1,0 +1,21 @@
+{
+  "productName": "Cursor2API Bridge",
+  "executableName": "Cursor2API Bridge",
+  "appId": "com.cursor2api.bridge",
+  "upstreamRepo": "7836246/cursor2api",
+  "upstreamVersion": "2.7.8",
+  "privateNodeVersion": "20.20.1",
+  "defaultPort": 3011,
+  "defaultFrontendRoute": "/vuelogs",
+  "themes": [
+    "light",
+    "dark",
+    "system"
+  ],
+  "updateFeed": {
+    "owner": "ItalyPtrick",
+    "repo": "cursor2api-bridge",
+    "assetName": "cursor2api-bridge-portable-win-x64.zip",
+    "checksumName": "cursor2api-bridge-portable-win-x64.zip.sha256"
+  }
+}

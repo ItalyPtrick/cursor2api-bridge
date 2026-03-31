@@ -1,0 +1,117 @@
+{
+  "name": "cursor2api-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Codex",
+  "description": "Branded Windows desktop shell for cursor2api v2.7.8",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "clean": "rimraf dist release vendor assets/generated",
+    "copy:renderer": "node scripts/copy-renderer.mjs",
+    "package:source": "node scripts/package-source.mjs",
+    "sync:upstream": "node scripts/sync-upstream.mjs",
+    "sync:runtime": "node scripts/sync-runtime.mjs",
+    "install:service-runtime": "node scripts/install-service-runtime.mjs",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "build:version": "node scripts/build-version-json.mjs",
+    "prepare:app": "npm run copy:renderer && npm run sync:upstream && npm run sync:runtime && npm run install:service-runtime && npm run package:source && npm run generate:icons && npm run build:version",
+    "test": "tsx --test test/**/*.test.ts",
+    "build": "npm run clean && npm run test && tsc && npm run prepare:app",
+    "start": "npm run build && electron .",
+    "dist:dir": "npm run build && electron-builder --dir",
+    "dist:portable": "npm run build && electron-builder --win portable",
+    "release:assets": "npm run dist:dir && node scripts/build-release-assets.mjs"
+  },
+  "build": {
+    "appId": "com.cursor2api.bridge",
+    "productName": "Cursor2API Bridge",
+    "artifactName": "cursor2api-bridge-${version}-${arch}.${ext}",
+    "asar": true,
+    "npmRebuild": false,
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "assets/generated"
+    },
+    "files": [
+      "dist/**/*",
+      "assets/generated/**/*",
+      "app.manifest.json",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/service",
+        "to": "service",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/service/node_modules",
+        "to": "service/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/runtime",
+        "to": "runtime",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "extraFiles": [
+      {
+        "from": "vendor/source",
+        "to": "source"
+      },
+      {
+        "from": "vendor/version/VERSION.json",
+        "to": "VERSION.json"
+      },
+      {
+        "from": "vendor/version/README-更新说明.md",
+        "to": "README-更新说明.md"
+      }
+    ],
+    "win": {
+      "target": [
+        "dir",
+        "portable"
+      ],
+      "icon": "assets/generated/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "cursor2api-bridge-portable-win-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@types/semver": "^7.7.1",
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12",
+    "pngjs": "^7.0.0",
+    "rimraf": "^6.0.1",
+    "semver": "^7.7.2",
+    "to-ico": "^1.1.5",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "dotenv": "^16.5.0",
+    "eventsource-parser": "^3.0.1",
+    "express": "^5.1.0",
+    "extract-zip": "^2.0.1",
+    "js-tiktoken": "^1.0.21",
+    "tesseract.js": "^7.0.0",
+    "undici": "^7.22.0",
+    "uuid": "^11.1.0",
+    "yaml": "^2.7.1"
+  }
+}
