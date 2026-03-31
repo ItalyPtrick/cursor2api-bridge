@@ -28,6 +28,10 @@
     "artifactName": "cursor2api-bridge-${version}-${arch}.${ext}",
     "asar": true,
     "npmRebuild": false,
+    "electronLanguages": [
+      "zh-CN",
+      "en-US"
+    ],
     "asarUnpack": [
       "node_modules/better-sqlite3/**/*"
     ],
@@ -50,17 +54,12 @@
         ]
       },
       {
-        "from": "vendor/service/node_modules",
-        "to": "service/node_modules",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
         "from": "vendor/runtime",
         "to": "runtime",
         "filter": [
-          "**/*"
+          "node/node.exe",
+          "node/LICENSE",
+          "node/README.md"
         ]
       }
     ],
