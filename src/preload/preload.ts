@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ExternalOpenRequest, RenderSnapshot, UpdateCommandResult } from '../shared/contracts';
 import { getFrontendRouteCandidates } from '../shared/frontend';
+import { getHomeServiceMeta } from '../shared/home-console';
 import type { FrontendRoute, HomeTab } from '../shared/state';
 import {
   aggregateRequestStats,
@@ -20,6 +21,7 @@ contextBridge.exposeInMainWorld('cursor2apiDesktop', {
   setFrontendRoute: (route: FrontendRoute) => ipcRenderer.invoke('launcher:set-frontend-route', route),
   setVisionEnabled: (enabled: boolean) => ipcRenderer.invoke('launcher:set-vision-enabled', enabled),
   getFrontendRouteCandidates: (route: FrontendRoute) => getFrontendRouteCandidates(route),
+  getHomeServiceMeta,
   startService: () => ipcRenderer.invoke('launcher:start-service'),
   stopService: () => ipcRenderer.invoke('launcher:stop-service'),
   restartService: () => ipcRenderer.invoke('launcher:restart-service'),

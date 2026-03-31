@@ -63,17 +63,18 @@ function cacheElements() {
     'globalBanner', 'toastHost',
     'homePanel', 'settingsPanel', 'statsPanel',
     'openUpstreamRepoButton',
-    'heroStatus', 'heroSummary', 'serviceControlHint', 'serviceSpotlight', 'serviceSpotlightWord',
-    'metricPort', 'metricAppVersion', 'metricUpstreamVersion', 'healthUrl',
-    'nodePath', 'serviceVersion', 'serviceError', 'stdoutConsole', 'stderrConsole',
+    'heroStatus', 'heroSummary', 'controlStrip', 'stderrPanel', 'stderrStateChip',
+    'metricPort', 'serviceVersion', 'serviceError', 'stdoutConsole', 'stderrConsole',
     'serviceToggleButton', 'restartButton', 'openHealthButton', 'openFrontendBrowserButton',
-    'visionStatus', 'visionHint', 'visionToggleButton',
+    'visionToggleButton',
     'copyBaseUrlButton', 'copyPortButton', 'copyModelButton',
     'openInstallButton', 'openDataButton', 'openSourceButton', 'createShortcutButton',
     'checkUpdateButton', 'downloadUpdateButton', 'applyUpdateButton', 'openVersionButton', 'openReadmeButton',
     'updatePhaseChip', 'updateCurrentVersion', 'updateRemoteVersion', 'updateIntegrity', 'updateMessage',
     'upstreamRepo', 'upstreamCommit', 'versionFile', 'readmeFile',
     'accessBaseUrl', 'accessPort', 'accessModel',
+    'settingsBaseUrl', 'settingsPort', 'settingsModel', 'settingsProtocols',
+    'settingsHealthUrl', 'settingsNodePath', 'settingsServiceVersion', 'settingsAppVersion', 'settingsUpstreamVersion',
     'statsBanner', 'statsRangeLabel', 'statsRequests', 'statsInputTokens', 'statsOutputTokens',
     'statsTotalTokens', 'statsActiveModels', 'statsSuccessRate', 'statsSuccessCount',
     'statsDegradedCount', 'statsErrorCount', 'statsInterceptedCount', 'statsProcessingCount',
@@ -400,59 +401,68 @@ function renderRangePills() {
 function renderConsole(snapshot) {
   const { versionInfo } = state.bootstrap;
   const { service } = snapshot;
+  const meta = desktop.getHomeServiceMeta({
+    phase: service.phase,
+    stderrTail: service.stderrTail,
+    lastError: service.lastError
+  });
 
-  elements.heroStatus.textContent = readablePhase(service.phase);
-  elements.heroSummary.textContent = service.phase === 'running'
-    ? '当前本地代理已经可用，可以直接复制接入信息，或去设置页打开原项目前端。'
-    : '服务停止时，本地 API 与浏览器前端入口都会保持待机。';
-
-  elements.serviceControlHint.textContent = controlHintForPhase(service.phase);
+  elements.heroStatus.textContent = meta.phaseLabel;
+  elements.heroSummary.textContent = meta.summaryText;
+  elements.controlStrip.dataset.tone = meta.phaseTone;
   elements.metricPort.textContent = String(service.port);
-  elements.metricAppVersion.textContent = versionInfo.appVersion;
-  elements.metricUpstreamVersion.textContent = versionInfo.upstream.version;
-  elements.serviceSpotlight.dataset.phase = service.phase;
-  elements.serviceSpotlightWord.textContent = readablePhaseWord(service.phase);
-  elements.healthUrl.textContent = service.healthUrl;
-  elements.nodePath.textContent = service.nodeExecutable;
   elements.serviceVersion.textContent = service.serviceVersion || '-';
-  elements.serviceError.textContent = service.lastError || '暂无';
+  elements.serviceError.textContent = meta.stderrSummary;
   elements.accessBaseUrl.textContent = service.baseUrl;
   elements.accessPort.textContent = String(service.port);
   elements.accessModel.textContent = service.configuredModel || '-';
   elements.stdoutConsole.textContent = service.stdoutTail.length ? service.stdoutTail.join('\n') : '等待标准输出…';
   elements.stderrConsole.textContent = service.stderrTail.length ? service.stderrTail.join('\n') : '暂无错误输出';
+  elements.stderrPanel.dataset.tone = meta.phaseTone === 'error'
+    ? 'error'
+    : service.stderrTail.length
+      ? 'active'
+      : 'idle';
+  elements.stderrStateChip.textContent = meta.phaseTone === 'error'
+    ? '异常'
+    : service.stderrTail.length
+      ? '最近输出'
+      : '监控中';
 
   elements.serviceToggleButton.textContent = primaryActionLabel(service.phase);
   elements.serviceToggleButton.disabled = !state.bridgeReady || service.phase === 'starting' || service.phase === 'stopping';
   elements.serviceToggleButton.classList.toggle('action-danger', service.phase === 'running');
   elements.serviceToggleButton.classList.toggle('action-strong', service.phase !== 'running');
   elements.restartButton.disabled = !state.bridgeReady || service.phase === 'starting' || service.phase === 'stopping';
+  elements.visionToggleButton.textContent = service.visionEnabled ? 'OCR 已开启' : 'OCR 已关闭';
+  elements.visionToggleButton.classList.toggle('action-strong', service.visionEnabled);
+  elements.visionToggleButton.classList.toggle('action-subtle', !service.visionEnabled);
 }
 
 function renderSettings(snapshot) {
   const { versionInfo, paths } = state.bootstrap;
-  const { update } = snapshot;
+  const { update, service } = snapshot;
 
   elements.updatePhaseChip.textContent = update.phase;
   elements.updateCurrentVersion.textContent = update.currentVersion;
   elements.updateRemoteVersion.textContent = update.remoteVersion || '未检查';
   elements.updateIntegrity.textContent = update.integrity;
   elements.updateMessage.textContent = update.message || '更新会下载到新目录，不覆盖当前运行目录。';
-  const visionEnabled = Boolean(snapshot.service.visionEnabled);
-  elements.visionStatus.textContent = visionEnabled ? '已开启' : '已关闭';
-  elements.visionHint.textContent = visionEnabled
-    ? '当前已开启 OCR：图片请求会尝试走 OCR 识别链路。'
-    : '默认关闭以减少资源占用。开启后会在图片请求场景尝试 OCR 识别。';
-  elements.visionToggleButton.textContent = visionEnabled ? '关闭 OCR' : '开启 OCR';
-  elements.visionToggleButton.disabled = !state.bridgeReady;
-  elements.visionToggleButton.classList.toggle('action-danger', visionEnabled);
-  elements.visionToggleButton.classList.toggle('action-strong', !visionEnabled);
+  elements.settingsBaseUrl.textContent = service.baseUrl;
+  elements.settingsPort.textContent = String(service.port);
+  elements.settingsModel.textContent = service.configuredModel || '-';
+  elements.settingsProtocols.textContent = 'Anthropic Messages API / OpenAI Chat Completions API / OpenAI Responses API';
+  elements.settingsHealthUrl.textContent = service.healthUrl;
+  elements.settingsNodePath.textContent = service.nodeExecutable;
+  elements.settingsServiceVersion.textContent = service.serviceVersion || '-';
+  elements.settingsAppVersion.textContent = versionInfo.appVersion;
+  elements.settingsUpstreamVersion.textContent = versionInfo.upstream.version;
   elements.upstreamRepo.textContent = versionInfo.upstream.repo;
   elements.upstreamCommit.textContent = versionInfo.upstream.commit || '-';
   elements.versionFile.textContent = paths.versionFile;
   elements.readmeFile.textContent = paths.readmeFile;
 
-  elements.openFrontendBrowserButton.disabled = !state.bridgeReady || snapshot.service.phase !== 'running';
+  elements.openFrontendBrowserButton.disabled = !state.bridgeReady || service.phase !== 'running';
   elements.openHealthButton.disabled = !state.bridgeReady;
   elements.downloadUpdateButton.disabled = !state.bridgeReady || update.phase !== 'available';
   elements.applyUpdateButton.disabled = !state.bridgeReady || update.phase !== 'ready';
@@ -718,44 +728,11 @@ function errorMessage(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
-function readablePhase(phase) {
-  const labels = {
-    stopped: '服务已停止',
-    starting: '服务启动中',
-    running: '服务运行中',
-    stopping: '服务停止中',
-    error: '服务异常'
-  };
-  return labels[phase] || phase;
-}
-
-function readablePhaseWord(phase) {
-  const labels = {
-    stopped: 'STOPPED',
-    starting: 'STARTING',
-    running: 'RUNNING',
-    stopping: 'STOPPING',
-    error: 'ERROR'
-  };
-  return labels[phase] || String(phase).toUpperCase();
-}
-
 function primaryActionLabel(phase) {
   if (phase === 'running') return '停止服务';
   if (phase === 'starting') return '启动中…';
   if (phase === 'stopping') return '停止中…';
   return '启动服务';
-}
-
-function controlHintForPhase(phase) {
-  const labels = {
-    stopped: '服务未运行时，本地 API、统计刷新和浏览器前端入口都会保持待机。',
-    starting: '等待健康检查通过后，就可以打开浏览器前端和统计页。',
-    running: '停止服务后，3011 端口会一起释放。',
-    stopping: '正在优雅停止服务进程，请稍候。',
-    error: '服务进入异常状态时，可以直接点“启动服务”重新拉起。'
-  };
-  return labels[phase] || '';
 }
 
 function formatNumber(value) {

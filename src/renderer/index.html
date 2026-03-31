@@ -39,128 +39,86 @@
 
     <main class="content">
       <section id="homePanel" class="panel active">
-        <section class="home-grid">
-          <div class="home-sidebar">
-            <article class="card card-primary control-card">
-              <div class="card-header">
-                <div>
-                  <div class="card-kicker">Service</div>
-                  <h3>服务控制</h3>
-                </div>
-              </div>
-              <p class="lead-text" id="serviceControlHint">
-                所有运行控制都集中在这里，启动后即可在设置页打开原项目前端。
-              </p>
-              <div class="action-row action-row-major action-row-control">
-                <button class="action-button action-strong action-large" id="serviceToggleButton" data-bridge-action="true">启动服务</button>
-                <button class="action-button" id="restartButton" data-bridge-action="true">重启服务</button>
-              </div>
-            </article>
-
-            <article class="card access-card">
-              <div class="card-header">
-                <div>
-                  <div class="card-kicker">Access</div>
-                  <h3>接入信息</h3>
-                </div>
-              </div>
-              <div class="access-list">
-                <div class="access-item">
-                  <div>
-                    <span class="label">本地地址</span>
-                    <div class="access-value mono-line" id="accessBaseUrl">http://127.0.0.1:3011</div>
-                  </div>
-                  <button class="copy-button" id="copyBaseUrlButton" data-bridge-action="true" aria-label="复制本地地址">复制</button>
-                </div>
-                <div class="access-item">
-                  <div>
-                    <span class="label">当前端口</span>
-                    <div class="access-value mono-line" id="accessPort">3011</div>
-                  </div>
-                  <button class="copy-button" id="copyPortButton" data-bridge-action="true" aria-label="复制端口">复制</button>
-                </div>
-                <div class="access-item">
-                  <div>
-                    <span class="label">当前模型</span>
-                    <div class="access-value mono-line" id="accessModel">anthropic/claude-sonnet-4.6</div>
-                  </div>
-                  <button class="copy-button" id="copyModelButton" data-bridge-action="true" aria-label="复制模型">复制</button>
-                </div>
-              </div>
-              <div class="access-footer">
-                <span class="label">兼容接口</span>
-                <p class="access-protocols" id="accessProtocols">Anthropic Messages API / OpenAI Chat Completions API / OpenAI Responses API</p>
-              </div>
-            </article>
+        <article class="card console-control-card">
+          <div class="console-control-head">
+            <div>
+              <div class="card-kicker">Workspace</div>
+              <h3>服务工作台</h3>
+            </div>
+            <div class="control-actions">
+              <button class="action-button action-strong action-large" id="serviceToggleButton" data-bridge-action="true">启动服务</button>
+              <button class="action-button" id="restartButton" data-bridge-action="true">重启服务</button>
+              <button class="action-button action-subtle" id="visionToggleButton" data-bridge-action="true">OCR 已关闭</button>
+            </div>
           </div>
 
-          <article class="card status-card">
-            <div class="card-header">
-              <div>
-                <div class="card-kicker">Live Status</div>
-                <h3>服务状态</h3>
-              </div>
+          <div class="control-strip" id="controlStrip" data-tone="stopped">
+            <div class="control-status-block">
+              <span class="chip control-status-chip" id="heroStatus">服务已停止</span>
+              <p class="compact-summary" id="heroSummary">服务未运行时，首页会保留控制入口和最近一段标准输出。</p>
             </div>
-            <div class="status-spotlight" id="serviceSpotlight" data-phase="stopped">
-              <div class="status-word" id="serviceSpotlightWord">STOPPED</div>
-              <div class="status-copy">
-                <div class="status-pill" id="heroStatus">服务已停止</div>
-                <p id="heroSummary">启动服务后即可使用本地 API，并在设置页打开原项目前端。</p>
-              </div>
-            </div>
-            <div class="service-grid">
-              <div>
+            <div class="compact-metrics">
+              <div class="metric-pill">
                 <span class="label">当前端口</span>
-                <div class="mono-line" id="metricPort">3011</div>
+                <strong id="metricPort">3011</strong>
               </div>
-              <div>
+              <div class="metric-pill">
                 <span class="label">服务版本</span>
-                <div class="mono-line" id="serviceVersion">-</div>
+                <strong id="serviceVersion">-</strong>
               </div>
-              <div>
-                <span class="label">健康检查</span>
-                <div class="mono-line" id="healthUrl">http://127.0.0.1:3011/health</div>
-              </div>
-              <div>
-                <span class="label">Node 运行时</span>
-                <div class="mono-line" id="nodePath">node</div>
-              </div>
-              <div>
-                <span class="label">应用版本</span>
-                <div class="mono-line" id="metricAppVersion">-</div>
-              </div>
-              <div>
-                <span class="label">上游版本</span>
-                <div class="mono-line" id="metricUpstreamVersion">-</div>
-              </div>
-              <div class="service-detail-wide">
-                <span class="label">最近错误</span>
-                <div class="mono-line" id="serviceError">暂无</div>
+              <div class="metric-pill metric-pill-wide">
+                <span class="label">错误摘要</span>
+                <strong id="serviceError">暂无错误输出</strong>
               </div>
             </div>
-          </article>
-        </section>
+          </div>
 
-        <section class="log-grid">
-          <article class="card log-card">
-            <div class="card-header">
-              <div>
-                <div class="card-kicker">Runtime</div>
-                <h3>最近标准输出</h3>
+          <div class="quick-copy-strip">
+            <div class="quick-copy-item">
+              <span class="label">本地地址</span>
+              <div class="quick-copy-line">
+                <div class="mono-line quick-copy-value" id="accessBaseUrl">http://127.0.0.1:3011</div>
+                <button class="copy-button" id="copyBaseUrlButton" data-bridge-action="true" aria-label="复制本地地址">复制</button>
               </div>
             </div>
-            <pre class="console" id="stdoutConsole">等待启动…</pre>
-          </article>
-          <article class="card log-card">
-            <div class="card-header">
-              <div>
-                <div class="card-kicker">Runtime</div>
-                <h3>最近标准错误</h3>
+            <div class="quick-copy-item">
+              <span class="label">当前端口</span>
+              <div class="quick-copy-line">
+                <div class="mono-line quick-copy-value" id="accessPort">3011</div>
+                <button class="copy-button" id="copyPortButton" data-bridge-action="true" aria-label="复制端口">复制</button>
               </div>
             </div>
-            <pre class="console" id="stderrConsole">暂无错误输出</pre>
-          </article>
-        </section>
+            <div class="quick-copy-item">
+              <span class="label">当前模型</span>
+              <div class="quick-copy-line">
+                <div class="mono-line quick-copy-value" id="accessModel">anthropic/claude-sonnet-4.6</div>
+                <button class="copy-button" id="copyModelButton" data-bridge-action="true" aria-label="复制模型">复制</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card stdout-card">
+          <div class="card-header console-card-header">
+            <div>
+              <div class="card-kicker">Runtime</div>
+              <h3>标准输出</h3>
+            </div>
+            <span class="chip chip-muted">当前 18 行</span>
+          </div>
+          <pre class="console console-main" id="stdoutConsole">等待标准输出…</pre>
+        </article>
+
+        <article class="card stderr-card" id="stderrPanel" data-tone="idle">
+          <div class="card-header stderr-header">
+            <div>
+              <div class="card-kicker">Runtime</div>
+              <h3>标准错误</h3>
+            </div>
+            <span class="chip chip-muted chip-compact" id="stderrStateChip">监控中</span>
+          </div>
+          <pre class="console console-compact" id="stderrConsole">暂无错误输出</pre>
+        </article>
       </section>
 
       <section id="settingsPanel" class="panel">
@@ -183,11 +141,11 @@
           <article class="card">
             <div class="card-header">
               <div>
-                <div class="card-kicker">Frontend</div>
-                <h3>前端入口</h3>
+                <div class="card-kicker">Access</div>
+                <h3>接入与运行信息</h3>
               </div>
             </div>
-            <p class="lead-text">软件内不再嵌入原项目前端，统一使用浏览器打开，优先尝试你选中的路由。</p>
+            <p class="lead-text">首页只保留快速复制入口，详细接入信息与运行细节集中放在这里。</p>
             <div class="setting-stack">
               <div>
                 <span class="label">路由偏好</span>
@@ -200,24 +158,43 @@
                 <button class="action-button action-strong" id="openFrontendBrowserButton" data-bridge-action="true">打开原项目前端</button>
                 <button class="action-button" id="openHealthButton" data-bridge-action="true">打开健康检查</button>
               </div>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-kicker">Vision</div>
-                <h3>OCR 设置</h3>
+              <div class="settings-detail-grid">
+                <div>
+                  <span class="label">本地地址</span>
+                  <div class="mono-line" id="settingsBaseUrl">http://127.0.0.1:3011</div>
+                </div>
+                <div>
+                  <span class="label">当前端口</span>
+                  <div class="mono-line" id="settingsPort">3011</div>
+                </div>
+                <div>
+                  <span class="label">当前模型</span>
+                  <div class="mono-line" id="settingsModel">anthropic/claude-sonnet-4.6</div>
+                </div>
+                <div>
+                  <span class="label">健康检查</span>
+                  <div class="mono-line" id="settingsHealthUrl">http://127.0.0.1:3011/health</div>
+                </div>
+                <div>
+                  <span class="label">Node 运行时</span>
+                  <div class="mono-line" id="settingsNodePath">node</div>
+                </div>
+                <div>
+                  <span class="label">服务版本</span>
+                  <div class="mono-line" id="settingsServiceVersion">-</div>
+                </div>
+                <div>
+                  <span class="label">应用版本</span>
+                  <div class="mono-line" id="settingsAppVersion">-</div>
+                </div>
+                <div>
+                  <span class="label">上游版本</span>
+                  <div class="mono-line" id="settingsUpstreamVersion">-</div>
+                </div>
               </div>
-            </div>
-            <p class="lead-text" id="visionHint">默认关闭。开启后会在图片请求场景尝试 OCR 识别。</p>
-            <div class="setting-stack">
               <div>
-                <span class="label">当前状态</span>
-                <div class="mono-line" id="visionStatus">已关闭</div>
-              </div>
-              <div class="action-row">
-                <button class="action-button" id="visionToggleButton" data-bridge-action="true">开启 OCR</button>
+                <span class="label">兼容接口</span>
+                <div class="paragraph detail-box" id="settingsProtocols">Anthropic Messages API / OpenAI Chat Completions API / OpenAI Responses API</div>
               </div>
             </div>
           </article>
