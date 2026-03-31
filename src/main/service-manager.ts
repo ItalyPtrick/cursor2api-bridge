@@ -37,6 +37,8 @@ function createDefaultConfigYaml(): string {
     '  db_enabled: true',
     '  dir: ./logs',
     '  db_path: ./logs/cursor2api.db',
+    'vision:',
+    '  enabled: false',
     'thinking:',
     '  enabled: true'
   ].join('\n');
@@ -237,10 +239,8 @@ export class ServiceManager extends EventEmitter {
   }
 
   private ensureConfigReady(): void {
-    const exampleConfig = join(this.paths.serviceDir, 'config.yaml.example');
     if (!existsSync(this.paths.dataConfigFile)) {
-      const content = existsSync(exampleConfig) ? readFileSync(exampleConfig, 'utf8') : createDefaultConfigYaml();
-      writeFileSync(this.paths.dataConfigFile, content, 'utf8');
+      writeFileSync(this.paths.dataConfigFile, createDefaultConfigYaml(), 'utf8');
     }
 
     copyFileSync(this.paths.dataConfigFile, this.paths.serviceConfigFile);
