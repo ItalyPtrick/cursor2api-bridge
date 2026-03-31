@@ -50,6 +50,14 @@
         "from": "vendor/service",
         "to": "service",
         "filter": [
+          "**/*",
+          "!node_modules{,/**}"
+        ]
+      },
+      {
+        "from": "vendor/service/node_modules",
+        "to": "service/node_modules",
+        "filter": [
           "**/*"
         ]
       },
