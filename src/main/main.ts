@@ -275,6 +275,11 @@ function registerIpc(): void {
     broadcastState();
     return renderSnapshot();
   });
+  ipcMain.handle('launcher:set-vision-enabled', async (_event, enabled: boolean) => {
+    await serviceManager.setVisionEnabled(Boolean(enabled));
+    broadcastState();
+    return renderSnapshot();
+  });
   ipcMain.handle('launcher:start-service', () => serviceManager.start());
   ipcMain.handle('launcher:stop-service', () => serviceManager.stop());
   ipcMain.handle('launcher:restart-service', () => serviceManager.restart());

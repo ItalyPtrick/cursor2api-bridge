@@ -34,6 +34,7 @@ export interface ServiceSnapshot {
   pid?: number;
   nodeExecutable: string;
   configuredModel: string;
+  visionEnabled: boolean;
   baseUrl: string;
   healthUrl: string;
   frontendUrl: string;

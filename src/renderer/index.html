@@ -206,6 +206,25 @@
           <article class="card">
             <div class="card-header">
               <div>
+                <div class="card-kicker">Vision</div>
+                <h3>OCR 设置</h3>
+              </div>
+            </div>
+            <p class="lead-text" id="visionHint">默认关闭。开启后会在图片请求场景尝试 OCR 识别。</p>
+            <div class="setting-stack">
+              <div>
+                <span class="label">当前状态</span>
+                <div class="mono-line" id="visionStatus">已关闭</div>
+              </div>
+              <div class="action-row">
+                <button class="action-button" id="visionToggleButton" data-bridge-action="true">开启 OCR</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <div>
                 <div class="card-kicker">Workspace</div>
                 <h3>本地入口</h3>
               </div>

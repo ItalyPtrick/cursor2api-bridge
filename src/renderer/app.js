@@ -67,6 +67,7 @@ function cacheElements() {
     'metricPort', 'metricAppVersion', 'metricUpstreamVersion', 'healthUrl',
     'nodePath', 'serviceVersion', 'serviceError', 'stdoutConsole', 'stderrConsole',
     'serviceToggleButton', 'restartButton', 'openHealthButton', 'openFrontendBrowserButton',
+    'visionStatus', 'visionHint', 'visionToggleButton',
     'copyBaseUrlButton', 'copyPortButton', 'copyModelButton',
     'openInstallButton', 'openDataButton', 'openSourceButton', 'createShortcutButton',
     'checkUpdateButton', 'downloadUpdateButton', 'applyUpdateButton', 'openVersionButton', 'openReadmeButton',
@@ -146,6 +147,19 @@ function wireControls() {
   bindAction('openHealthButton', () => desktop.openExternal({ target: 'health' }), { silentSuccess: true });
   bindAction('openUpstreamRepoButton', () => desktop.openExternal({ target: 'upstreamRepo' }), { silentSuccess: true });
   bindAction('openFrontendBrowserButton', () => openFrontendInBrowser(), { successMessage: '已在浏览器中打开原项目前端。' });
+  const visionToggleButton = document.getElementById('visionToggleButton');
+  if (visionToggleButton) {
+    visionToggleButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      const currentEnabled = Boolean(requireSnapshot().service.visionEnabled);
+      const nextEnabled = !currentEnabled;
+      void runAction(() => desktop.setVisionEnabled(nextEnabled), {
+        button: visionToggleButton,
+        onResult: updateSnapshotFromResult,
+        successMessage: nextEnabled ? 'OCR 已开启。' : 'OCR 已关闭。'
+      });
+    });
+  }
   bindAction('openInstallButton', () => desktop.openExternal({ target: 'install' }), { silentSuccess: true });
   bindAction('openDataButton', () => desktop.openExternal({ target: 'data' }), { silentSuccess: true });
   bindAction('openSourceButton', () => desktop.openExternal({ target: 'source' }), { silentSuccess: true });
@@ -424,6 +438,15 @@ function renderSettings(snapshot) {
   elements.updateRemoteVersion.textContent = update.remoteVersion || '未检查';
   elements.updateIntegrity.textContent = update.integrity;
   elements.updateMessage.textContent = update.message || '更新会下载到新目录，不覆盖当前运行目录。';
+  const visionEnabled = Boolean(snapshot.service.visionEnabled);
+  elements.visionStatus.textContent = visionEnabled ? '已开启' : '已关闭';
+  elements.visionHint.textContent = visionEnabled
+    ? '当前已开启 OCR：图片请求会尝试走 OCR 识别链路。'
+    : '默认关闭以减少资源占用。开启后会在图片请求场景尝试 OCR 识别。';
+  elements.visionToggleButton.textContent = visionEnabled ? '关闭 OCR' : '开启 OCR';
+  elements.visionToggleButton.disabled = !state.bridgeReady;
+  elements.visionToggleButton.classList.toggle('action-danger', visionEnabled);
+  elements.visionToggleButton.classList.toggle('action-strong', !visionEnabled);
   elements.upstreamRepo.textContent = versionInfo.upstream.repo;
   elements.upstreamCommit.textContent = versionInfo.upstream.commit || '-';
   elements.versionFile.textContent = paths.versionFile;

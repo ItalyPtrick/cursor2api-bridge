@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('cursor2apiDesktop', {
   setThemeMode: (themeMode: ThemeMode) => ipcRenderer.invoke('launcher:set-theme-mode', themeMode),
   setHomeTab: (tab: HomeTab) => ipcRenderer.invoke('launcher:set-home-tab', tab),
   setFrontendRoute: (route: FrontendRoute) => ipcRenderer.invoke('launcher:set-frontend-route', route),
+  setVisionEnabled: (enabled: boolean) => ipcRenderer.invoke('launcher:set-vision-enabled', enabled),
   getFrontendRouteCandidates: (route: FrontendRoute) => getFrontendRouteCandidates(route),
   startService: () => ipcRenderer.invoke('launcher:start-service'),
   stopService: () => ipcRenderer.invoke('launcher:stop-service'),

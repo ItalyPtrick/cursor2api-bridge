@@ -5,7 +5,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { RuntimePaths } from './paths';
 import type { ServiceSnapshot } from '../shared/contracts';
-import { getConfiguredModelFromYaml } from '../shared/service-config';
+import { getConfiguredModelFromYaml, getVisionEnabledFromYaml, setVisionEnabledInYaml } from '../shared/service-config';
 
 const MAX_LOG_LINES = 18;
 const STARTUP_TIMEOUT_MS = 30000;
@@ -205,6 +205,18 @@ export class ServiceManager extends EventEmitter {
     return this.start();
   }
 
+  async setVisionEnabled(enabled: boolean): Promise<ServiceSnapshot> {
+    this.ensureConfigReady();
+
+    const sourceConfig = readFileSync(this.paths.dataConfigFile, 'utf8');
+    const nextConfig = setVisionEnabledInYaml(sourceConfig, enabled);
+
+    writeFileSync(this.paths.dataConfigFile, nextConfig, 'utf8');
+    copyFileSync(this.paths.dataConfigFile, this.paths.serviceConfigFile);
+    this.refreshRuntimeConfig();
+    return this.snapshot;
+  }
+
   private createSnapshot(phase: ServiceSnapshot['phase']): ServiceSnapshot {
     const baseUrl = `http://127.0.0.1:${this.port}`;
     return {
@@ -212,6 +224,7 @@ export class ServiceManager extends EventEmitter {
       port: this.port,
       nodeExecutable: this.resolveNodeExecutable(),
       configuredModel: this.readConfiguredModel(),
+      visionEnabled: this.readVisionEnabled(),
       baseUrl,
       healthUrl: `${baseUrl}/health`,
       frontendUrl: `${baseUrl}/vuelogs`,
@@ -251,7 +264,7 @@ export class ServiceManager extends EventEmitter {
     this.configMirrorWatcher = watch(this.paths.serviceConfigFile, () => {
       try {
         copyFileSync(this.paths.serviceConfigFile, this.paths.dataConfigFile);
-        this.refreshConfiguredModel();
+        this.refreshRuntimeConfig();
       } catch {
         // Ignore config mirror races while the service is writing.
       }
@@ -273,15 +286,27 @@ export class ServiceManager extends EventEmitter {
     return fallbackModel;
   }
 
-  private refreshConfiguredModel(): void {
+  private readVisionEnabled(): boolean {
+    for (const filePath of [this.paths.dataConfigFile, this.paths.serviceConfigFile]) {
+      if (existsSync(filePath)) {
+        return getVisionEnabledFromYaml(readFileSync(filePath, 'utf8'), false);
+      }
+    }
+
+    return false;
+  }
+
+  private refreshRuntimeConfig(): void {
     const configuredModel = this.readConfiguredModel();
-    if (configuredModel === this.snapshot.configuredModel) {
+    const visionEnabled = this.readVisionEnabled();
+    if (configuredModel === this.snapshot.configuredModel && visionEnabled === this.snapshot.visionEnabled) {
       return;
     }
 
     this.snapshot = {
       ...this.snapshot,
-      configuredModel
+      configuredModel,
+      visionEnabled
     };
     this.emitChange();
   }
