@@ -28,6 +28,10 @@
     "artifactName": "cursor2api-bridge-${version}-${arch}.${ext}",
     "asar": true,
     "npmRebuild": false,
+    "electronLanguages": [
+      "zh-CN",
+      "en-US"
+    ],
     "asarUnpack": [
       "node_modules/better-sqlite3/**/*"
     ],
@@ -46,7 +50,8 @@
         "from": "vendor/service",
         "to": "service",
         "filter": [
-          "**/*"
+          "**/*",
+          "!node_modules{,/**}"
         ]
       },
       {
@@ -60,7 +65,9 @@
         "from": "vendor/runtime",
         "to": "runtime",
         "filter": [
-          "**/*"
+          "node/node.exe",
+          "node/LICENSE",
+          "node/README.md"
         ]
       }
     ],
@@ -95,23 +102,16 @@
     "@types/semver": "^7.7.1",
     "electron": "^37.2.0",
     "electron-builder": "^26.0.12",
+    "7zip-bin": "^5.2.0",
     "pngjs": "^7.0.0",
     "rimraf": "^6.0.1",
-    "semver": "^7.7.2",
     "to-ico": "^1.1.5",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0",
-    "dotenv": "^16.5.0",
-    "eventsource-parser": "^3.0.1",
-    "express": "^5.1.0",
     "extract-zip": "^2.0.1",
-    "js-tiktoken": "^1.0.21",
-    "tesseract.js": "^7.0.0",
-    "undici": "^7.22.0",
-    "uuid": "^11.1.0",
+    "semver": "^7.7.2",
     "yaml": "^2.7.1"
   }
 }
